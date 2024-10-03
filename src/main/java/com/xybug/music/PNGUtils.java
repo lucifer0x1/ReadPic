@@ -113,11 +113,11 @@ public class PNGUtils {
                 int r = pixelsBuffer[index];
                 int g = pixelsBuffer[index+1];
                 int b = pixelsBuffer[index+2];
-                int alpha =pixelsBuffer[index+3];
+                int a =pixelsBuffer[index+3];
                 int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
 
                 try {
-                    Color color = new Color(r,r,b,alpha);
+                    Color color = new Color(r,r,b,a);
                 } catch (Exception e){
                     System.out.println(r);
                     System.out.println(g);
@@ -125,7 +125,8 @@ public class PNGUtils {
                     e.printStackTrace();
                 }
 
-                Color color = new Color(r,g,b,alpha);
+                Color color = new Color(r,g,b,a);
+                int rgba = color.getRGB();
 
 //                Color color = new Color(
 //                        Byte.toUnsignedInt(pixelsBuffer[index])
