@@ -74,13 +74,10 @@ public class PNGUtils {
         System.out.println("压缩 "+ chunkData_IHDR[10]);//压缩
         System.out.println("过滤 "+ chunkData_IHDR[11]);//过滤
         System.out.println("扫描 "+ chunkData_IHDR[12]);//扫描
-
         System.out.println("w " +w);
         System.out.println("h " +h);
-
         System.out.println("d =" + d);
         System.out.println("c =" + c);
-
 
 
         int bytesPerPixel = Math.max(1, c * d / 8);
@@ -89,11 +86,7 @@ public class PNGUtils {
         // TODO scan
         scan(data, w, h, c, d);
 
-//        ColorModel colorModel = ColorModel.getRGBdefault();
-//        BufferedImage image = new BufferedImage(colorModel, colorModel.createCompatibleWritableRaster(w, h), false, null);
         BufferedImage image = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
-
-        Graphics2D g2d = image.createGraphics();
 
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
@@ -229,7 +222,7 @@ public class PNGUtils {
             for(int i=0; i<bytesPerRow; i++) {
                 if(i < bytesPerPixel) {
                     // 第一个像素，不作解析
-                    pixelsBuffer[offset + i] =  scanline[i] ;
+                    pixelsBuffer[offset + i] =  Byte.toUnsignedInt(scanline[i]);
                 } else {
                     // 其他像素
                     int a = pixelsBuffer[offset + i - bytesPerPixel];
@@ -267,7 +260,7 @@ public class PNGUtils {
                 } else {
                     // 其他像素
                     int a = pixelsBuffer[offset + i - bytesPerPixel];
-                    int value = scanline[i] + a;
+                    int value = Byte.toUnsignedInt(scanline[i]) + a;
                     pixelsBuffer[offset + i] = value & 0xFF;
                 }
             }
