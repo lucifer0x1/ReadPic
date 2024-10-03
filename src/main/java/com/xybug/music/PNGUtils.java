@@ -30,15 +30,26 @@ public class PNGUtils {
     }
 
     public static void main(String[] args) throws IOException {
+        ClassLoader classLoader = PNGUtils.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("202409290324_dbz.png");
+        assert inputStream != null;
+        byte[] bytes = inputStream.readAllBytes();
+//        System.out.println( "==>" + System.getProperty("java.class.path"));
+//        System.out.println( "==>" + System.getProperty("user.dir"));
+//        if(true) return;
 
-        FileOutputStream fos = new FileOutputStream(new File("C:\\OSGeo4W\\1.txt"));
-        OutputStreamWriter osw = new OutputStreamWriter(fos);
+        FileOutputStream fos_r = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "r.txt");
+        FileOutputStream fos_g = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "g.txt");
+        FileOutputStream fos_b = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "b.txt");
+        FileOutputStream fos_a = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "a.txt");
 
-//        BufferedImage read = ImageIO.read(new File("C:\\OSGeo4W\\202409291024_VIL.png"));
-//        FileInputStream fis = new FileInputStream("C:\\OSGeo4W\\202409290324_dbz.png");
-        FileInputStream fis = new FileInputStream("C:\\OSGeo4W\\202410030300_dbz.png");
+        OutputStreamWriter osw_r = new OutputStreamWriter(fos_r);
+        OutputStreamWriter osw_g = new OutputStreamWriter(fos_g);
+        OutputStreamWriter osw_b = new OutputStreamWriter(fos_b);
+        OutputStreamWriter osw_a = new OutputStreamWriter(fos_a);
+
         int offset  = 0;
-        byte[] bytes = fis.readAllBytes();
+
         byte[] head = Arrays.copyOfRange(bytes, offset,offset+8);
         offset += 8;
         // TODO IHDR
@@ -95,11 +106,11 @@ public class PNGUtils {
                 int r = pixelsBuffer[index];
                 int g = pixelsBuffer[index+1];
                 int b = pixelsBuffer[index+2];
-                int alpha =pixelsBuffer[index+3];
+                int a =pixelsBuffer[index+3];
                 int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
 
                 try {
-                    Color color = new Color(r,r,b,alpha);
+                    Color color = new Color(r,r,b,a);
                 } catch (Exception e){
                     System.out.println(r);
                     System.out.println(g);
@@ -107,7 +118,8 @@ public class PNGUtils {
                     e.printStackTrace();
                 }
 
-                Color color = new Color(r,g,b,alpha);
+                Color color = new Color(r,g,b,a);
+                int rgba = color.getRGB();
 
 //                Color color = new Color(
 //                        Byte.toUnsignedInt(pixelsBuffer[index])
@@ -122,16 +134,27 @@ public class PNGUtils {
 //                        , 255-Byte.toUnsignedInt(pixelsBuffer[index+3])
 //                );
 
-                image.setRGB(i,j,color.getRGB());
-                osw.write(color.getAlpha() + ",");
+                image.setRGB(i,j,rgba);
+
+                if (r!=0) osw_r.write(r + ",");
+                if (g!=0)osw_g.write(g + ",");
+                if(b!=0)osw_b.write(b + ",");
+                if(a!=0)osw_a.write(a + ",");
             }
         }
 
         image.flush();
-        ImageIO.write(image, "PNG", new File("C:\\OSGeo4W\\dbz.png"));
+        ImageIO.write(image, "PNG", new File(System.getProperty("user.dir")+ File.separator + "dbz.png"));
 
-        osw.flush();
-        osw.close();
+        osw_r.flush();
+        osw_g.flush();
+        osw_b.flush();
+        osw_a.flush();
+
+        osw_r.close();
+        osw_g.close();
+        osw_b.close();
+        osw_a.close();
 
     }
 
