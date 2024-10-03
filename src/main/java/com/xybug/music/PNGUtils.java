@@ -31,12 +31,11 @@ public class PNGUtils {
 
     public static void main(String[] args) throws IOException {
         ClassLoader classLoader = PNGUtils.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("202409290324_dbz.png");
+        InputStream inputStream = classLoader.getResourceAsStream("202410030300_dbz.png");
         assert inputStream != null;
         byte[] bytes = inputStream.readAllBytes();
 //        System.out.println( "==>" + System.getProperty("java.class.path"));
 //        System.out.println( "==>" + System.getProperty("user.dir"));
-//        if(true) return;
 
         FileOutputStream fos_r = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "r.txt");
         FileOutputStream fos_g = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "g.txt");
@@ -97,7 +96,7 @@ public class PNGUtils {
         // TODO scan
         scan(data, w, h, c, d);
 
-        BufferedImage image = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(w,h,BufferedImage.TYPE_3BYTE_BGR);
 
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
@@ -118,8 +117,11 @@ public class PNGUtils {
                     e.printStackTrace();
                 }
 
+//                r = r>>1;
+//                g = g>>1;
+//                b = b>>1;
                 Color color = new Color(r,g,b,a);
-                int rgba = color.getRGB();
+                int rgba =  color.getRGB()  ;
 
 //                Color color = new Color(
 //                        Byte.toUnsignedInt(pixelsBuffer[index])
@@ -136,10 +138,10 @@ public class PNGUtils {
 
                 image.setRGB(i,j,rgba);
 
-                if (r!=0) osw_r.write(r + ",");
-                if (g!=0)osw_g.write(g + ",");
-                if(b!=0)osw_b.write(b + ",");
-                if(a!=0)osw_a.write(a + ",");
+//               if(r!=0) osw_r.write(r/10 + ",");
+//               if(g!=0) osw_g.write(g/10 + ",");
+//               if(b!=0) osw_b.write(b/10 + ",");
+               osw_a.write((r+g+b+a) /10+ "\n");
             }
         }
 
