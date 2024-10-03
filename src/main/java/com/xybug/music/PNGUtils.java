@@ -3,7 +3,6 @@ package com.xybug.music;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.io.*;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
@@ -30,15 +29,26 @@ public class PNGUtils {
     }
 
     public static void main(String[] args) throws IOException {
+        ClassLoader classLoader = PNGUtils.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("202409290324_dbz.png");
+        assert inputStream != null;
+        byte[] bytes = inputStream.readAllBytes();
+//        System.out.println( "==>" + System.getProperty("java.class.path"));
+//        System.out.println( "==>" + System.getProperty("user.dir"));
+//        if(true) return;
 
-        FileOutputStream fos = new FileOutputStream(new File("C:\\OSGeo4W\\1.txt"));
-        OutputStreamWriter osw = new OutputStreamWriter(fos);
+        FileOutputStream fos_r = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "r.txt");
+        FileOutputStream fos_g = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "g.txt");
+        FileOutputStream fos_b = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "b.txt");
+        FileOutputStream fos_a = new FileOutputStream(System.getProperty("user.dir")+ File.separator + "a.txt");
 
-//        BufferedImage read = ImageIO.read(new File("C:\\OSGeo4W\\202409291024_VIL.png"));
-        FileInputStream fis = new FileInputStream("C:\\OSGeo4W\\202409290324_dbz.png");
-//        FileInputStream fis = new FileInputStream("C:\\OSGeo4W\\202409291024_VIL.png");
+        OutputStreamWriter osw_r = new OutputStreamWriter(fos_r);
+        OutputStreamWriter osw_g = new OutputStreamWriter(fos_g);
+        OutputStreamWriter osw_b = new OutputStreamWriter(fos_b);
+        OutputStreamWriter osw_a = new OutputStreamWriter(fos_a);
+
         int offset  = 0;
-        byte[] bytes = fis.readAllBytes();
+
         byte[] head = Arrays.copyOfRange(bytes, offset,offset+8);
         offset += 8;
         // TODO IHDR
@@ -91,10 +101,8 @@ public class PNGUtils {
 
 //        ColorModel colorModel = ColorModel.getRGBdefault();
 //        BufferedImage image = new BufferedImage(colorModel, colorModel.createCompatibleWritableRaster(w, h), false, null);
-        BufferedImage image = new BufferedImage(w,h,BufferedImage.TYPE_BYTE_GRAY);
-
-        Graphics2D g2d = image.createGraphics();
-
+//        BufferedImage image = new BufferedImage(w,h,BufferedImage.TYPE_BYTE_GRAY);
+        BufferedImage image = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
                 int index = bytesPerPixel * ( j * w + i);
@@ -102,34 +110,48 @@ public class PNGUtils {
                 int r = Byte.toUnsignedInt(pixelsBuffer[index]);
                 int g = Byte.toUnsignedInt(pixelsBuffer[index+1]);
                 int b = Byte.toUnsignedInt(pixelsBuffer[index+2]);
-                int alpha =Byte.toUnsignedInt(pixelsBuffer[index+3]);
+                int a =Byte.toUnsignedInt(pixelsBuffer[index+3]);
                 int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
-                if(gray >210){
-                    System.out.println(gray);
-                }
-                Color color = new Color(
-                        Byte.toUnsignedInt(pixelsBuffer[index])
-                        ,Byte.toUnsignedInt(pixelsBuffer[index+1])
-                        ,Byte.toUnsignedInt(pixelsBuffer[index+2])
-                        ,Byte.toUnsignedInt(pixelsBuffer[index+3])
+//                if(gray >210){
+//                    System.out.println(gray);
+//                }
+                Color color = new Color(255-r,255-r,255-r);
+                int rgba = color.getRGB() & 0x00FFFFFF | (1 << 24);
+
+//                Color color = new Color(
+//                        Byte.toUnsignedInt(pixelsBuffer[index])
+//                        ,Byte.toUnsignedInt(pixelsBuffer[index+1])
+//                        ,Byte.toUnsignedInt(pixelsBuffer[index+2])
+//                        ,Byte.toUnsignedInt(pixelsBuffer[index+3])
 
                         // TODO  反向 BufferedImage.TYPE_BYTE_GRAY
 //                        255-Byte.toUnsignedInt(pixelsBuffer[index])
 //                        ,255-Byte.toUnsignedInt(pixelsBuffer[index+1])
 //                        ,255-Byte.toUnsignedInt(pixelsBuffer[index+2])
 //                        , 255-Byte.toUnsignedInt(pixelsBuffer[index+3])
-                );
+//                );
 
-                image.setRGB(i,j,color.getRGB());
-                osw.write(color.getAlpha() + ",");
+                image.setRGB(i,j,rgba);
+
+                if (r!=0) osw_r.write(r + ",");
+                if (g!=0)osw_g.write(g + ",");
+                if(b!=0)osw_b.write(b + ",");
+                if(a!=0)osw_a.write(a + ",");
             }
         }
 
         image.flush();
-        ImageIO.write(image, "PNG", new File("C:\\OSGeo4W\\dbz.png"));
+        ImageIO.write(image, "PNG", new File(System.getProperty("user.dir")+ File.separator + "dbz.png"));
 
-        osw.flush();
-        osw.close();
+        osw_r.flush();
+        osw_g.flush();
+        osw_b.flush();
+        osw_a.flush();
+
+        osw_r.close();
+        osw_g.close();
+        osw_b.close();
+        osw_a.close();
 
     }
 
