@@ -3,14 +3,13 @@ package com.xybug.music;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.io.*;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-public class PNGUtils {
-    public  static int[] pixelsBuffer = new int[30000];
+public class PngParase {
+    public  static byte[] pixelsBuffer = new byte[30000];
 
 
     /**
@@ -84,7 +83,7 @@ public class PNGUtils {
 
 
         int bytesPerPixel = Math.max(1, c * d / 8);
-        pixelsBuffer = new int[bytesPerPixel * w * h]; // 存储过滤后的像素数据
+        pixelsBuffer = new byte[bytesPerPixel * w * h]; // 存储过滤后的像素数据
 
         // TODO scan
         scan(data, w, h, c, d);
@@ -99,22 +98,15 @@ public class PNGUtils {
             for (int i = 0; i < w; i++) {
                 int index = bytesPerPixel * ( (h-j-1) * w + i);
                 //0.299 * R + 0.587 * G + 0.114 * B
-                int r = pixelsBuffer[index];
-                int g = pixelsBuffer[index+1];
-                int b = pixelsBuffer[index+2];
-                int alpha =pixelsBuffer[index+3];
+                int r = Byte.toUnsignedInt(pixelsBuffer[index]);
+                int g = Byte.toUnsignedInt(pixelsBuffer[index+1]);
+                int b = Byte.toUnsignedInt(pixelsBuffer[index+2]);
+                int alpha =Byte.toUnsignedInt(pixelsBuffer[index+3]);
                 int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
-
-                try {
-                    Color color = new Color(r,r,b,alpha);
-                } catch (Exception e){
-                    System.out.println(r);
-                    System.out.println(g);
-                    System.out.println(b);
-                    e.printStackTrace();
+                if(gray >210){
+                    System.out.println(gray);
                 }
-
-                Color color = new Color(r,g,b,alpha);
+                Color color = new Color(r,r,b,alpha);
 
 //                Color color = new Color(
 //                        Byte.toUnsignedInt(pixelsBuffer[index])
@@ -190,7 +182,7 @@ public class PNGUtils {
 
     public static void  filterNone(byte[] scanline, int bytesPerPixel,int  bytesPerRow,int  offset) {
         for(int i=0; i<bytesPerRow; i++) {
-            pixelsBuffer[offset + i] = Byte.toUnsignedInt(scanline[i]);
+            pixelsBuffer[offset + i] = scanline[i];
         }
     }
 
@@ -198,12 +190,12 @@ public class PNGUtils {
         for(int  i=0; i<bytesPerRow; i++) {
             if(i < bytesPerPixel) {
                 // 第一个像素，不作解析
-                pixelsBuffer[offset + i] = Byte.toUnsignedInt(scanline[i]);
+                pixelsBuffer[offset + i] = scanline[i];
             } else {
                 // 其他像素
-                int a = pixelsBuffer[offset + i - bytesPerPixel];
-                int value = Byte.toUnsignedInt(scanline[i]) + a;
-                pixelsBuffer[offset + i] = value & 0xFF;
+                byte a = pixelsBuffer[offset + i - bytesPerPixel];
+                byte value = (byte) (scanline[i] + a);
+                pixelsBuffer[offset + i] = (byte) (value & 0xFF);
             }
         }
     }
@@ -212,13 +204,13 @@ public class PNGUtils {
         if(offset < bytesPerRow) {
             // 第一行，不作解析
             for(int i=0; i<bytesPerRow; i++) {
-                pixelsBuffer[offset + i] = Byte.toUnsignedInt(scanline[i]);
+                pixelsBuffer[offset + i] = scanline[i] ;
             }
         } else {
             for(int i=0; i<bytesPerRow; i++) {
-                int b = pixelsBuffer[offset + i - bytesPerRow];
-                int value = Byte.toUnsignedInt(scanline[i]) + b;
-                pixelsBuffer[offset + i] = value & 0xFF;
+                byte b = pixelsBuffer[offset + i - bytesPerRow];
+                byte value = (byte) (scanline[i] + b);
+                pixelsBuffer[offset + i] = (byte) (value & 0xFF);
             }
         }
     }
@@ -232,26 +224,27 @@ public class PNGUtils {
                     pixelsBuffer[offset + i] =  scanline[i] ;
                 } else {
                     // 其他像素
-                    int a = pixelsBuffer[offset + i - bytesPerPixel];
+                    byte a = pixelsBuffer[offset + i - bytesPerPixel];
 
-                    int  value = Byte.toUnsignedInt(scanline[i]) + a>> 1; // 需要除以2
-                    pixelsBuffer[offset + i] = (value & 0xFF);
+                    byte value = (byte) (scanline[i]  + (a >> 1)); // 需要除以2
+                    pixelsBuffer[offset + i] = (byte) (value & 0xFF);
                 }
             }
         } else {
             for(int i=0; i<bytesPerRow; i++) {
                 if(i < bytesPerPixel) {
                     // 第一个像素，只做Up
-                    int b = pixelsBuffer[offset + i - bytesPerRow];
+                    byte b = pixelsBuffer[offset + i - bytesPerRow];
 
-                    int value = Byte.toUnsignedInt(scanline[i])+ b >> 1; // 需要除以2
-                    pixelsBuffer[offset + i] = (value & 0xFF);
+                    byte value = (byte) (scanline[i] + (b >> 1)); // 需要除以2
+                    pixelsBuffer[offset + i] = (byte) (value & 0xFF);
                 } else {
                     // 其他像素
-                    int a = pixelsBuffer[offset + i - bytesPerPixel];
-                    int b = pixelsBuffer[offset + i - bytesPerRow];
-                    int value = Byte.toUnsignedInt(scanline[i])+ (a + b >> 1);
-                    pixelsBuffer[offset + i] = (value & 0xFF);
+                    byte a = pixelsBuffer[offset + i - bytesPerPixel];
+                    byte b = pixelsBuffer[offset + i - bytesPerRow];
+
+                    byte value = (byte) (scanline[i]  + ((a + b) >> 1));
+                    pixelsBuffer[offset + i] = (byte) (value & 0xFF);
                 }
             }
         }
@@ -263,36 +256,36 @@ public class PNGUtils {
             for(int i=0; i<bytesPerRow; i++) {
                 if(i < bytesPerPixel) {
                     // 第一个像素，不作解析
-                    pixelsBuffer[offset + i] = Byte.toUnsignedInt(scanline[i]);
+                    pixelsBuffer[offset + i] = scanline[i];
                 } else {
                     // 其他像素
-                    int a = pixelsBuffer[offset + i - bytesPerPixel];
-                    int value = scanline[i] + a;
-                    pixelsBuffer[offset + i] = value & 0xFF;
+                    byte a = pixelsBuffer[offset + i - bytesPerPixel];
+                    byte value = (byte) (scanline[i] + a);
+                    pixelsBuffer[offset + i] = (byte) (value & 0xFF);
                 }
             }
         } else {
             for(int i=0; i<bytesPerRow; i++) {
                 if(i < bytesPerPixel) {
                     // 第一个像素，只做Up
-                    int b = pixelsBuffer[offset + i - bytesPerRow];
-                    int value = Byte.toUnsignedInt(scanline[i])  + b;
-                    pixelsBuffer[offset + i] = value & 0xFF;
+                    byte b = pixelsBuffer[offset + i - bytesPerRow];
+                    byte value = (byte) (scanline[i]  + b);
+                    pixelsBuffer[offset + i] = (byte) (value & 0xFF);
                 } else {
                     // 其他像素
-                    int a = pixelsBuffer[offset + i - bytesPerPixel];
-                    int b = pixelsBuffer[offset + i - bytesPerRow];
-                    int c = pixelsBuffer[offset + i - bytesPerRow - bytesPerPixel];
-                    int p = a + b - c;
-                    int pa = Math.abs(p - a);
-                    int pb = Math.abs(p - b);
-                    int pc = Math.abs(p - c);
-                    int pr;
+                    byte a = pixelsBuffer[offset + i - bytesPerPixel];
+                    byte b = pixelsBuffer[offset + i - bytesPerRow];
+                    byte c = pixelsBuffer[offset + i - bytesPerRow - bytesPerPixel];
+                    byte p = (byte) (a + b - c);
+                    byte pa = (byte) Math.abs(p - a);
+                    byte pb = (byte) Math.abs(p - b);
+                    byte pc = (byte) Math.abs(p - c);
+                    byte pr;
                     if (pa <= pb && pa <= pc) pr = a;
                     else if (pb <= pc) pr = b;
                     else pr = c;
-                    int value = Byte.toUnsignedInt(scanline[i]) + pr;
-                    pixelsBuffer[offset + i] = value & 0xFF;
+                    byte value = (byte) (scanline[i] + pr);
+                    pixelsBuffer[offset + i] = (byte) (value & 0xFF);
                 }
             }
         }
